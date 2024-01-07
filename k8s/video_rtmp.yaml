@@ -1,0 +1,125 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  annotations:
+    pv.kubernetes.io/provisioned-by: blob.csi.azure.com
+  name: shared-data-pv
+spec:
+  storageClassName: azureblob-nfs-premium
+  capacity:
+    storage: 100Gi
+  #volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany  # Use ReadWriteMany for shared access
+  persistentVolumeReclaimPolicy: Retain
+  csi:
+    driver: blob.csi.azure.com
+    volumeHandle: MC_cracktech_kvott_southeastasia#kuberneteslivestreaming#streamingcontainer
+    volumeAttributes:
+      resourceGroup: MC_cracktech_kvott_southeastasia
+      storageAccount: kuberneteslivestreaming
+      containerName: streamingcontainer
+      protocol: nfs
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: shared-data-pvc
+spec:
+  storageClassName: azureblob-nfs-premium
+  accessModes:
+    - ReadWriteMany  # Use ReadWriteMany to allow multiple pods to access the PVC
+  resources:
+    requests:
+      storage: 100Gi
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: nginx-rtmp-hpa
+spec:
+  maxReplicas: 20 # define max replica count
+  minReplicas: 4  # define min replica count
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: nginx-rtmp-deployment
+  # targetCPUUtilizationPercentage: 15
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 15
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-rtmp-deployment
+spec:
+  replicas: 2 # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: nginx-rtmp
+  template:
+    metadata:
+      labels:
+        app: nginx-rtmp
+      # annotations:
+      #     prometheus.io/scrape: 'true'
+      #     prometheus.io/port: '9113'
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: nginx-rtmp
+          image: acrlivestreaming.azurecr.io/rmtp_test/livestreaming:second
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          ports:
+          - containerPort: 1935
+            name: video-input
+          - containerPort: 8080
+            name: video-output
+          volumeMounts:
+          - name: shared-data
+            mountPath: /tmp
+        # - name: nginx-exporter
+        #   image: 'nginx/nginx-prometheus-exporter:0.10.0'
+        #   args:
+        #     - '-nginx.scrape-uri=http://localhost:8080/stub_status'
+        #   resources:
+        #     requests:
+        #       cpu: 1m
+        #       memory: 200Mi
+        #     limits:
+        #       cpu: 1000m
+        #       memory: 512Mi
+        #   ports:
+        #     - containerPort: 9113
+      volumes:
+      - name: shared-data
+        persistentVolumeClaim:
+          claimName: shared-data-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-rtmp-service
+spec:
+  selector:
+    app: nginx-rtmp
+  ports:
+  - port: 80
+    name: video-output
+    targetPort: video-output
+  - port: 1935
+    name: video-input
+    targetPort: video-input
+  type: LoadBalancer

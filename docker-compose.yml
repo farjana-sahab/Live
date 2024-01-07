@@ -1,0 +1,63 @@
+version: '3.1'
+
+
+services:
+  rtmp:
+    build: ./
+    ports:
+      - "1935:1935"
+      - "8080:8080"
+    container_name: rtmp_server
+    volumes:
+      - ./hls:/tmp/hls
+      - ./rec:/tmp/rec
+
+  control_panel:
+    build: ./control_panel
+    ports:
+      - "3000:3000"
+    container_name: control_panel
+    networks:
+      - live_chat_and_poll_network
+
+  live_chat_and_poll:
+    build: ./live_chat_and_poll
+    ports:
+      - "8000:8000"
+    container_name: live_chat_and_poll
+    networks:
+      - live_chat_and_poll_network
+    depends_on:
+      - postgres
+      - redis
+
+    env_file:
+    - ./live_chat_and_poll/.env
+
+
+  redis:
+    image: redis:alpine
+    container_name: redis
+    command: >
+          --requirepass redis
+    networks:
+      - live_chat_and_poll_network
+  postgres:
+    image: postgres:alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: poll
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./postgres:/var/lib/postgresql/data
+    networks:
+      - live_chat_and_poll_network
+
+networks:
+  live_chat_and_poll_network:
+volumes:
+  postgres:
+  rec:
+  hls:

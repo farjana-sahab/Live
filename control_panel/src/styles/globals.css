@@ -1,0 +1,113 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.vjs-button > .vjs-icon-placeholder:before {
+    font-size: 2.8em !important;
+    line-height: 1.67;
+}
+
+
+.video-js {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+}
+
+.vjs-has-started .vjs-control-bar, .vjs-audio-only-mode .vjs-control-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: visible;
+    opacity: 1;
+    background-color: none;
+    transition: visibility 0.1s, opacity 0.1s;
+}
+
+
+.video-js .vjs-control-bar {
+    background-color: transparent !important; /* Ensures background is transparent */
+    width: 100%;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom :20px !important;
+    height: 6em !important;
+    padding: 40px !important;
+}
+/* Base styling for the video player */
+.video-js {
+    width: 100%;
+    height: auto; /* Adjust based on aspect ratio */
+    background-color: black;
+    border-radius: 8px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+}
+/* Centering content in the control bar */
+.video-js .vjs-control-bar {
+    justify-content: center; /* Center align items horizontally */
+    background-color: transparent; /* Makes the control bar background transparent */
+}
+
+
+/* Remove background color on hover */
+.video-js .vjs-control-bar:hover {
+    background-color: transparent; /* Ensures background is transparent on hover */
+}
+
+
+/* Style for the LIVE indicator */
+/* Adjusting the position and size of the LIVE text */
+.video-js .vjs-live-display {
+    font-size: 1.8em !important;
+    color: white;
+    font-weight: bold;
+    margin-left: 10px !important; /* Spacing between dot and text */
+    padding-top: 12px !important;
+    line-height: 20px; /* Aligning text height with the dot */
+    vertical-align: middle; /* Align text with icons */
+}
+
+
+
+/* Adjusting the size and position of the red dot */
+.video-js .vjs-live-display::before {
+    content: ''; /* Essential for pseudo-elements */
+    display: inline-block;
+    width: 16px; /* Increased dot size */
+    height: 16px; /* Increased dot size */
+    background-color: red; /* Dot color */
+    border-radius: 50%; /* Make it round */
+    margin-right: 10px; /* Space between dot and LIVE text */
+    vertical-align: middle; /* Align dot vertically with text */
+    animation: pulse-new 1s infinite; /* Pulsing animation */
+}
+
+/* Define the pulsing animation */
+@keyframes pulse-new {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.5);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+
+
+
+
+.vjs-big-play-button .vjs-svg-icon {
+    width: 1em;
+    height: 1em;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    line-height: 1;
+    transform: translate(-50%, -50%);
+}

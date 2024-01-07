@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: live-chat-and-poll-deployment
+spec:
+  replicas: 1 # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: live-chat-and-poll
+  template:
+    metadata:
+      labels:
+        app: live-chat-and-poll
+      # annotations:
+      #     prometheus.io/scrape: 'true'
+      #     prometheus.io/port: '9113'
+    spec:
+      nodeSelector:
+        "kubernetes.io/os": linux
+      nodeSelector:
+        "kubernetes.io/os": linux
+      containers:
+        - name: live-chat-and-poll
+          image: acrlivestreaming.azurecr.io/live_chat_and_poll/livechatandpoll:third
+          env:
+          - name: DATABASE_URL
+            value: postgresql://livestreamingpostgres@livestreamingpostgres:5F3cDt4M\?Ak@livestreamingpostgres.postgres.database.azure.com:5432/poll
+          - name: REDIS_URL  
+            value: redis://livestreamingredis.redis.cache.windows.net:6379
+          - name: REDIS_PASSWORD
+            value: I85OuoVccAcfaQ0fMBK4ezmb0J5uciYOTAzCaPfJPRA=
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          ports:
+          - containerPort: 8000
+            name: chat-backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: live-chat-and-poll-service
+spec:
+  selector:
+    app: live-chat-and-poll
+  ports:
+  - port: 8000
+    name: chat-backend
+    targetPort: chat-backend
+  type: LoadBalancer
