@@ -1,3 +1,6 @@
-# docker build -t jekopaul/nginx-rtmp:first . --platform=linux/arm64/v8
-# docker push jekopaul/nginx-rtmp:first
 
+# Live video with poll and chat application 
+### Tech stack
+- Nginx RTMP
+- Fast API
+- Next JS
